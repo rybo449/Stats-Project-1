@@ -45,12 +45,6 @@ b
 a/(a+b)
 b/(a+b)
 
-a<-length(which(new_data$PREM==0))
-a
-b<-length(which(new_data$PREM==1))
-b
-a/(a+b)
-b/(a+b)
 
 a<-length(which(new_data$HYPER==0))
 a
@@ -66,27 +60,6 @@ b
 a/(a+b)
 b/(a+b)
 
-a<-length(which(new_data$PHYSVIS==0))
-a
-b<-length(which(new_data$PHYSVIS==1))
-b
-c<-length(which(new_data$PHYSVIS==2))
-c
-d<-length(which(new_data$PHYSVIS==3))
-d
-e<-length(which(new_data$PHYSVIS==4))
-e
-f<-length(which(new_data$PHYSVIS==5))
-f
-g<-length(which(new_data$PHYSVIS==6))
-g
-a/(a+b+c+d+e+f+g)
-b/(a+b+c+d+e+f+g)
-c/(a+b+c+d+e+f+g)
-d/(a+b+c+d+e+f+g)
-e/(a+b+c+d+e+f+g)
-f/(a+b+c+d+e+f+g)
-g/(a+b+c+d+e+f+g)
 
 
 ##Plotting mother's age with mother's weight
@@ -131,7 +104,7 @@ boxplot(birthwt~prem, xlab = "Mother's history of premature labour",ylab="Birth 
 boxplot(birthwt~hyper, xlab = "Mther's history of Hypertension",ylab="Birth Weight of the Baby")
 boxplot(birthwt~urinirr, xlab = "Mother's history of Urinary Irritation",ylab="Birth Weight of the Baby")
 boxplot(birthwt~physvis, xlab = "Number of Physician Visits",ylab="Birth Weight of the Baby")
-
+par(mfrow=c(1,1))
 ##Fitting distributions
 library(fitdistrplus)
 library(logspline)
@@ -218,9 +191,16 @@ summary(model1)
 model1$anova
 formula(model1)
 require(MASS)
+
+##Calculate the Odds ratio and the 95% confidence interval
+require(epicalc)
+logistic.display(model1)
 exp(cbind(coef(fit), confint(fit)))
 exp(cbind(coef(model1),confint(model1)))
 xtabs(model1)
 
 prob = predict(fit,type=c("response"))
 library(pROC)
+g<-roc(BIRTHWT~ prob, data = new_data)
+plot(g)
+
