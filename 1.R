@@ -1,5 +1,5 @@
 getwd()
-#setwd("home/rybo/Desktop/Stats-Project-1")
+setwd("/Users/MSAUSI2014/Desktop/Stats-Project-1")
 ##Checking the sample mean, standard deviation, sample median, min and max for mother's age and mother's weight
 birthwt<-read.csv(file="birthwt.csv",head = TRUE)
 colMeans(birthwt)
@@ -106,6 +106,20 @@ birthwt<-new_data$BIRTHWT
 ##Making histogram of birth weight
 hist(birthwt)
 ##Scatterplots
+library(car)
+scatterplot.matrix(~birthwt+prem+physvis+mothage+mothwt)
+
+
+##Scatterplots of continuous variables
+library(gclus)
+dta<-new_data[c(1,2,5,8,9)]
+dta
+dta.r<-abs(cor(dta))
+dta.col<-dmat.color(dta.r)
+dta.o<-order.single(dta.r)
+cpairs(dta,dta.o,panel.colors=dta.col,gap=0.5,main="Variables ordered and colored by correlation")
+
+
 par(mfrow=c(1,2))
 plot(mothage, birthwt, xlab="Mother's age during pregnancy", ylab="Birth Weight of the Baby")
 plot(mothwt, birthwt, xlab="Mother's weight during pregnancy", ylab="Birth Weight of the Baby")
