@@ -253,5 +253,6 @@ g<-roc(BIRTHWT~ prob, data = new_data)
 plot(g)
 library(Deducer)
 par(mfrow=c(1,1))
-rocplot(model1,main="Final Fitted Model using StepWise AIC")
-rocplot(fit)
+
+rocplot(model1)
+
