@@ -148,76 +148,110 @@ t.test(smoke_0,smoke_1,alternative = "greater")
 ##amongst non-smokers is much higher than those in smokers.
 
 ##Linear Regression with no 
-reg1<-lm(birthwt~new_data$BIRTHWT)
+reg1<-lm(BIRTHWT~.-BIRTHWT,data=new_data)
+summary(reg1)
+
+##Treating PREM and PHYSVIS as quantitative
+reg1<-lm(BIRTHWT~ MOTHAGE+MOTHWT+factor(RACE)+factor(SMOKE)+PREM+factor(HYPER)+factor(URINIRR)+PHYSVIS, data=new_data)
+summary(reg1)
+model1<-stepAIC(reg1, direction = "both")
+
+##treating it as categorical
+reg1<-lm(BIRTHWT~ MOTHAGE+MOTHWT+factor(RACE)+factor(SMOKE)+factor(PREM)+factor(HYPER)+factor(URINIRR)+factor(PHYSVIS), data=new_data)
+summary(reg1)
+model1<-stepAIC(reg1, direction = "both")
+##Selecting PHYSVIS as quantitative and PREM as categorical
+reg1<-lm(BIRTHWT~ MOTHAGE+MOTHWT+factor(RACE)+factor(SMOKE)+factor(PREM)+factor(HYPER)+factor(URINIRR)+PHYSVIS, data=new_data)
+summary(reg1)
+model1<-stepAIC(reg1, direction = "both")
+AIC(model1)
+BIC(model1)
+summary(model1)
+
 ##Linear Model with prem and physvis as non-categorical variables
 pairs(new_data)
 
 library(leaps)
 model<-leaps(x = new_data[,1:8], y = new_data[,9], names = names(new_data)[1:8], method = "Cp")
 library(MASS)
-fit<-lm(BIRTHWT~ MOTHAGE+MOTHWT+factor(RACE)+factor(SMOKE)+PREM+factor(HYPER)+factor(URINIRR)+PHYSVIS + SMOKE*(MOTHAGE+MOTHWT+factor(RACE)+PREM+factor(HYPER)+factor(URINIRR)+PHYSVIS), data = new_data)
+
+##Running linear regression with all two way interactions between SMOKE and everything else except BIRTHWT
+fit<-lm(BIRTHWT~ MOTHAGE+MOTHWT+factor(RACE)+factor(SMOKE)+factor(PREM)+factor(HYPER)+factor(URINIRR)+PHYSVIS + factor(SMOKE)*(MOTHAGE+MOTHWT+factor(RACE)+PREM+factor(HYPER)+factor(URINIRR)+PHYSVIS), data = new_data)
 model1<-stepAIC(fit, direction = "both")
 extractAIC(fit, k = log(length(fit)))
-
+model1<-lm(BIRTHWT~ MOTHAGE+MOTHWT+factor(RACE)+factor(SMOKE)+factor(PREM)+factor(HYPER)+factor(URINIRR)+ factor(SMOKE)*MOTHAGE, data = new_data)
+model1<-stepAIC(model1, direction = "both")
 AIC(model1)
 BIC(model1)
 summary(model1)
 model1$anova
 formula(model1)
+confint(model1)
+par(mfrow=c(3,3))
+plot(new_data$MOTHAGE,residuals(model1),xlab = "Age of the mother",ylab="Residuals")
+abline(h=0)
+plot(new_data$MOTHWT,residuals(model1),xlab = "Weight of the mother",ylab="Residuals")
+abline(h=0)
+plot(new_data$PHYSVIS,residuals(model1),xlab = "Physician Visits by the mother",ylab="Residuals")
+abline(h=0)
 
-##Linear Model with prem and physvis as categrical variables
-fit<-lm(BIRTHWT~ MOTHAGE+MOTHWT+factor(RACE)+factor(SMOKE)+PREM+factor(HYPER)+factor(URINIRR)+PHYSVIS + SMOKE*(MOTHAGE+MOTHWT+factor(RACE)+factor(PREM)+factor(HYPER)+factor(URINIRR)+factor(PHYSVIS)), data = new_data)
-model1<-stepAIC(fit, direction = "both")
-extractAIC(fit, k = log(length(fit)))
+boxplot(residuals(model1)~new_data$PREM,xlab = "Premature Births by the mother",ylab="Residuals")
+abline(h=0)
+boxplot(residuals(model1)~new_data$SMOKE,xlab = "Smoker Status of the mother",ylab="Residuals")
+abline(h=0)
+boxplot(residuals(model1)~new_data$RACE,xlab = "Race of the mother",ylab="Residuals")
+abline(h=0)
+boxplot(residuals(model1)~new_data$HYPER,xlab = "Hypertension Status of the mother",ylab="Residuals")
+abline(h=0)
+boxplot(residuals(model1)~new_data$URINIRR,xlab = "Urinary Infection in the mother",ylab="Residuals")
+abline(h=0)
 
-AIC(model1)
-BIC(model1)
-summary(model1)
-model1$anova
-formula(model1)
+plot(model1,which = 2,5)
+
+new_data[177,]
+new_data[183,]
+new_data[67,]
 
 
 ##Logistic Regression-- Part 4
 ##Binarize the birthwt
 new_data$BIRTHWT
-new_data$BIRTHWT<-(birthwt>2500)+0
+new_data$BIRTHWT<-(new_data$BIRTHWT>2500)+0
 
 ##fitting the first logistic regression
-fit<-glm(BIRTHWT~ MOTHAGE+MOTHWT+factor(RACE)+factor(SMOKE)+PREM+factor(HYPER)+factor(URINIRR)+PHYSVIS + SMOKE*(MOTHAGE+MOTHWT+factor(RACE)+factor(PREM)+factor(HYPER)+factor(URINIRR)+factor(PHYSVIS)), data = new_data, family = binomial(link="logit"))
+fit<-glm(BIRTHWT~ MOTHAGE+MOTHWT+factor(RACE)+factor(SMOKE)+factor(PREM)+factor(HYPER)+factor(URINIRR)+PHYSVIS + factor(SMOKE)*(MOTHAGE+MOTHWT+factor(RACE)+factor(PREM)+factor(HYPER)+factor(URINIRR)+PHYSVIS), data = new_data, family = binomial(link="logit"))
 summary(fit)
 model1<-stepAIC(fit, direction = "both")
 extractAIC(fit, k = log(length(fit)))
 AIC(model1)
 BIC(model1)
+AIC(fit)
+BIC(fit)
+new_data$BIRTHWT
 summary(model1)
 model1$anova
 formula(model1)
 require(MASS)
-exp(cbind(coef(fit), confint(fit)))
+exp(cbind(coef(model1), confint(model1)))
 exp(coefficients(fit))
+confint(model1)
 exp(cbind(coef(model1),confint(model1)))
 
-##Logistic regression with prem and physvis as non categorical variables
-fit<-glm(BIRTHWT~ MOTHAGE+MOTHWT+factor(RACE)+factor(SMOKE)+PREM+factor(HYPER)+factor(URINIRR)+PHYSVIS + SMOKE*(MOTHAGE+MOTHWT+factor(RACE)+PREM+factor(HYPER)+factor(URINIRR)+PHYSVIS), data = new_data, family = binomial(link="logit"))
-summary(fit)
-model1<-stepAIC(fit, direction = "both")
-extractAIC(fit, k = log(length(fit)))
-AIC(model1)
-BIC(model1)
-summary(model1)
-model1$anova
-formula(model1)
-require(MASS)
 
 ##Calculate the Odds ratio and the 95% confidence interval
 require(epicalc)
 logistic.display(model1)
-exp(cbind(coef(fit), confint(fit)))
-exp(cbind(coef(model1),confint(model1)))
-xtabs(model1)
+exp(cbind(OR=coef(fit),confint(fit)))
+par(mfrow=c(1,1))
+##Making the classification Table
 
-prob = predict(fit,type=c("response"))
+
+prob = predict(model1,type=c("response"))
+table(new_data$BIRTHWT,prob)
 library(pROC)
 g<-roc(BIRTHWT~ prob, data = new_data)
 plot(g)
-
+library(Deducer)
+par(mfrow=c(1,1))
+rocplot(model1,main="Final Fitted Model using StepWise AIC")
+rocplot(fit)
