@@ -157,53 +157,70 @@ t.test(smoke_0,smoke_1,alternative = "greater")
 ##and 2 tailed tests. So we know that the birth weight in babies
 ##amongst non-smokers is much higher than those in smokers.
 
-##Hypothesis testing t-test
-ttest<-t.test(birthwt~smoke)
-names(ttest)
-ttest$statistic
-ts = replicate(1000, t.test(birthwt,smoke)$statistic)
-range(ts)
-pts = seq(-4.5,4.5,length=100)
-plot(pts,dt(pts,df=18),col='red',type='1')
-lines(density(ts))
-### Sample two tailed hypothesis testing
-##check if sample mean of smokers is different from the sample mean of non smokers
-xbar = mean(birthwt)
-mu0 = median(birthwt)
-sigma = sd(birthwt)
-n = length(birthwt)
-z = (xbar-mu0)/(sigma/sqrt(n))
-z
-alpha = 0.05
-z.half.alpha = qnorm(1-alpha/2)
-c(-z.half.alpha,z.half.alpha)
-##We notice that the value of z is -0.609, which is in between the 95% confidence interval of -1.95 and +1.95 so we do not
-##reject the null hypothesis
-
+##Linear Regression with no 
 reg1<-lm(birthwt~new_data$BIRTHWT)
-
-##Linear Model
-fit<-lm(birthwt~mothage+mothwt+factor(race)+factor(smoke)+factor(hyper)+factor(urinirr)+factor(prem)+factor(physvis))
-summary(fit)
-plot(prem,birthwt)
-abline(fit)
+##Linear Model with prem and physvis as non-categorical variables
 pairs(new_data)
 
 library(leaps)
 model<-leaps(x = new_data[,1:8], y = new_data[,9], names = names(new_data)[1:8], method = "Cp")
-model<-update(fit, .~. - mothwt)
-extractAIC(model, k = log(n))
 library(MASS)
-fit<-lm(birthwt~ . + smoke*(.-smoke), data = new_data)
+fit<-lm(BIRTHWT~ MOTHAGE+MOTHWT+factor(RACE)+factor(SMOKE)+PREM+factor(HYPER)+factor(URINIRR)+PHYSVIS + SMOKE*(MOTHAGE+MOTHWT+factor(RACE)+PREM+factor(HYPER)+factor(URINIRR)+PHYSVIS), data = new_data)
 model1<-stepAIC(fit, direction = "both")
-AIC_selected<-
+extractAIC(fit, k = log(length(fit)))
+
 AIC(model1)
 BIC(model1)
-model1
 summary(model1)
 model1$anova
-abline(model1)
-plot(mothage, birthwt)
+formula(model1)
 
-aic_data<-data.frame(race, smoke,hyper,urinirr, prem, birthwt)
-pairs(aic_data)
+##Linear Model with prem and physvis as categrical variables
+fit<-lm(BIRTHWT~ MOTHAGE+MOTHWT+factor(RACE)+factor(SMOKE)+PREM+factor(HYPER)+factor(URINIRR)+PHYSVIS + SMOKE*(MOTHAGE+MOTHWT+factor(RACE)+factor(PREM)+factor(HYPER)+factor(URINIRR)+factor(PHYSVIS)), data = new_data)
+model1<-stepAIC(fit, direction = "both")
+extractAIC(fit, k = log(length(fit)))
+
+AIC(model1)
+BIC(model1)
+summary(model1)
+model1$anova
+formula(model1)
+
+
+##Logistic Regression-- Part 4
+##Binarize the birthwt
+new_data$BIRTHWT
+new_data$BIRTHWT<-(birthwt>2500)+0
+
+##fitting the first logistic regression
+fit<-glm(BIRTHWT~ MOTHAGE+MOTHWT+factor(RACE)+factor(SMOKE)+PREM+factor(HYPER)+factor(URINIRR)+PHYSVIS + SMOKE*(MOTHAGE+MOTHWT+factor(RACE)+factor(PREM)+factor(HYPER)+factor(URINIRR)+factor(PHYSVIS)), data = new_data, family = binomial(link="logit"))
+summary(fit)
+model1<-stepAIC(fit, direction = "both")
+extractAIC(fit, k = log(length(fit)))
+AIC(model1)
+BIC(model1)
+summary(model1)
+model1$anova
+formula(model1)
+require(MASS)
+exp(cbind(coef(fit), confint(fit)))
+exp(coefficients(fit))
+exp(cbind(coef(model1),confint(model1)))
+
+##Logistic regression with prem and physvis as non categorical variables
+fit<-glm(BIRTHWT~ MOTHAGE+MOTHWT+factor(RACE)+factor(SMOKE)+PREM+factor(HYPER)+factor(URINIRR)+PHYSVIS + SMOKE*(MOTHAGE+MOTHWT+factor(RACE)+PREM+factor(HYPER)+factor(URINIRR)+PHYSVIS), data = new_data, family = binomial(link="logit"))
+summary(fit)
+model1<-stepAIC(fit, direction = "both")
+extractAIC(fit, k = log(length(fit)))
+AIC(model1)
+BIC(model1)
+summary(model1)
+model1$anova
+formula(model1)
+require(MASS)
+exp(cbind(coef(fit), confint(fit)))
+exp(cbind(coef(model1),confint(model1)))
+xtabs(model1)
+
+prob = predict(fit,type=c("response"))
+library(pROC)
