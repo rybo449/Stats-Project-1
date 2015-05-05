@@ -27,6 +27,20 @@ median(new_data$MOTHWT)
 min(new_data$MOTHWT)
 max(new_data$MOTHWT)
 
+##For Premature birth
+mean(new_data$PREM)
+sd(new_data$PREM)
+median(new_data$PREM)
+min(new_data$PREM)
+max(new_data$PREM)
+
+##Number of phyysician visits
+mean(new_data$PHYSVIS)
+sd(new_data$PHYSVIS)
+median(new_data$PHYSVIS)
+min(new_data$PHYSVIS)
+max(new_data$PHYSVIS)
+
 ##Factor statistics
 a<-length(which(new_data$RACE==1))
 a
@@ -63,21 +77,24 @@ b/(a+b)
 
 
 ##Plotting mother's age with mother's weight
-plot(new_data$BIRTHWT, new_data$MOTHAGE)
-reg1<-lm(new_data$MOTHAGE~new_data$BIRTHWT)
+plot(new_data$MOTHWT, new_data$BIRTHWT)
+reg1<-lm(new_data$BIRTHWT~new_data$MOTHWT)
 abline(reg1)
 ##changing column names
 mothage<-new_data$MOTHAGE
 mothwt<-new_data$MOTHWT
 race<-factor(new_data$RACE)
 smoke<-factor(new_data$SMOKE)
-prem<-factor(new_data$PREM)
+prem<-new_data$PREM
 hyper<-factor(new_data$HYPER)
 urinirr<-factor(new_data$URINIRR)
-physvis<-factor(new_data$PHYSVIS)
+physvis<-new_data$PHYSVIS
 birthwt<-new_data$BIRTHWT
 ##Making histogram of birth weight
-hist(birthwt)
+library(fitdistrplus)
+
+hist(birthwt,xlab="Birth Weight of the Child",main="Histogram of the Birth Weight",col="purple",breaks = 50,prob=TRUE)
+curve(dnorm(x,mean=mean(birthwt), sd=sd(birthwt)), add=TRUE,col="green")
 ##Scatterplots
 library(car)
 scatterplot.matrix(~birthwt+prem+physvis+mothage+mothwt)
